@@ -46,11 +46,35 @@ Keypad::Keypad(char *userKeymap, byte *row, byte *col, byte numRows, byte numCol
 
 	startTime = 0;
 	single_key = false;
+	
+
+
+}
+
+
+void Keypad::initIC2() {
+
+
+
+	// initialize the backpack IO expander
+	// and display functions.
+	_Addr = defaultPort;
+	// ------------------------------------------------------------------------
+	if (_i2cioX.begin(_Addr) == 1)
+	{
+		_i2cioX.portMode(OUTPUT);  // Set the entire IO extender to OUTPUT
+
+		_i2cioX.write(0);  // Set the entire port to LOW
+	}
+
 }
 
 // Let the user define a keymap - assume the same row/column count as defined in constructor
 void Keypad::begin(char *userKeymap) {
     keymap = userKeymap;
+
+
+
 }
 
 // Returns a single key only. Retained for backwards compatibility.
@@ -80,114 +104,12 @@ bool Keypad::getKeys() {
 }
 
 // Private : Hardware scan
-void Keypad::SetRemotePort(int port, byte data) {
 
-	/// read global variable and combine with data
-	switch (port) {
-
-
-		/// transmitt data
-		Wire.beginTransmission(port);     //Begin the transmission to PCF8574
-		Wire.write(data);                                //Send the data to PCF8574
-		Wire.endTransmission();            //End the Transmission
-
-										   //// save state to global var
-
-
-
-
-	}
-
+void Keypad::prendeFoco(uint8_t pin, uint8_t level) {
+//	setPinValue(defaultPort, pin, value);
+	_i2cioX.digitalWrite( pin, level);
 }
 
-
-
-byte Keypad::PinSelectormask(byte Pin)
-
-{
-	switch (Pin) {
-
-	case 0: {
-		return 1;
-
-	}
-			break;
-	case 1: {
-		return 2;
-
-	}
-			break;
-
-	case 2: {
-		return 4;
-
-	}
-			break;
-
-	case 3: {
-		return 8;
-
-	}
-
-			break;
-
-	case 4: {
-		return 16;
-
-	}
-			break;
-
-	case 5: {
-		return 32;
-
-	}
-			break;
-
-	case 6: {
-		return 64;
-
-	}
-
-			break;
-
-	case 7: {
-		return 128;
-
-	}
-
-			break;
-
-	default: break;
-
-
-	}
-
-}
-
-void Keypad::setPinValue(byte port, byte Pin, bool value) {
-
-	
-	byte data;
-
-	data = 0;
-	data = PinSelectormask(Pin);
-	if (value == false) {
-		data = ~data;
-
-	}
-	
-		if (value == false) {
-			
-			SetRemotePort(port, data);
-		}
-		else {
-			
-			SetRemotePort(port, data);
-		}
-
-			
-
-	}
 	
 
 
@@ -202,15 +124,16 @@ void Keypad::scanKeys() {
 	//	pin_mode(columnPins[c],OUTPUT);
 	//	pin_write(columnPins[c], LOW);	// Begin column pulse output.
 		/// IC2 Mod
-		setPinValue(defaultPort, columnPins[c], LOW);
-
+		//setPinValue(defaultPort, columnPins[c], LOW);
+		_i2cioX.digitalWrite(columnPins[c], LOW);
 		for (byte r=0; r<sizeKpd.rows; r++) {
 			bitWrite(bitMap[r], c, !pin_read(rowPins[r]));  // keypress is active low so invert to high.
 		}
 		// Set pin to high impedance input. Effectively ends column pulse.
 		//pin_write(columnPins[c],HIGH);
 		//pin_mode(columnPins[c],INPUT);
-		setPinValue(defaultPort, columnPins[c], HIGH);
+		//setPinValue(defaultPort, columnPins[c], HIGH);
+		_i2cioX.digitalWrite(columnPins[c], HIGH);
 	}
 }
 

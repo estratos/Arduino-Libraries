@@ -34,7 +34,7 @@
 #define KEYPAD_H
 
 #include "utility/Key.h"
-#include <Wire.h>
+#include "I2CIO.h"
 // Arduino versioning.
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
@@ -66,6 +66,8 @@ typedef char KeypadEvent;
 typedef unsigned int uint;
 typedef unsigned long ulong;
 
+
+
 // Made changes according to this post http://arduino.cc/forum/index.php?topic=58337.0
 // by Nick Gammon. Thanks for the input Nick. It actually saved 78 bytes for me. :)
 typedef struct {
@@ -91,10 +93,12 @@ public:
 	uint bitMap[MAPSIZE];	// 10 row x 16 column array of bits. Except Due which has 32 columns.
 	Key key[LIST_MAX];
 	unsigned long holdTimer;
-
+	
 	char getKey();
 	bool getKeys();
+	void initIC2();
 	KeyState getState();
+	void prendeFoco(uint8_t pin, uint8_t level);
 	void begin(char *userKeymap);
 	bool isPressed(char keyChar);
 	void setDebounceTime(uint);
@@ -107,6 +111,8 @@ public:
 	byte numKeys();
 
 private:
+	uint8_t _Addr;             // I2C Address of the IO expander
+	I2CIO   _i2cioX;            // I2CIO PCF8574* expansion module driver I2CLCDextraIO
 	unsigned long startTime;
 	char *keymap;
     byte *rowPins;
@@ -115,16 +121,13 @@ private:
 	uint debounceTime;
 	uint holdTime;
 	bool single_key;
-
+	byte portIC2;
 	void scanKeys();
 	bool updateList();
 	void nextKeyState(byte n, boolean button);
 	void transitionTo(byte n, KeyState nextState);
 	void (*keypadEventListener)(char);
-	void SetRemotePort(int port, byte data);
 	
-	void setPinValue(byte port, byte pin, bool value);
-	byte PinSelectormask(byte Pin);
 };
 
 #endif
